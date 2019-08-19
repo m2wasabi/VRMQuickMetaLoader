@@ -34,3 +34,20 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+
+# Jetbrains Idea setting directory
+.idea/
+
+# Jetbrains Idea plugin directory
+JetBrains/
+JetBrains.meta
+
+# Ignore Assets
+Assets/Plugins/Editor/
+Assets/Plugins/Editor.meta
+
+# TmpIgnore
+Assets/VRM/
+Assets/VRM.meta
+Assets/VRM.Samples/
+Assets/VRM.Samples.meta
