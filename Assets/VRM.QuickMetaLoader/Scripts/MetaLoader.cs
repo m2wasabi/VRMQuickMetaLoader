@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,7 +18,9 @@ namespace VRM.QuickMetaLoader
 
         public MetaLoader(byte[] bytes)
         {
-            this._bytes = bytes;
+            _bytes = bytes;
+            _meta = ScriptableObject.CreateInstance<VRMMetaObject>();
+            _meta.name = "Meta";
         }
         public VRMMetaObject Read(bool createThumbnail = false)
         {
@@ -63,9 +66,6 @@ namespace VRM.QuickMetaLoader
 
         private  VRMMetaObject ByteReadMetaData(int pos)
         {
-            _meta = ScriptableObject.CreateInstance<VRMMetaObject>();
-            _meta.name = "Meta";
-
             var chunkDataSize = BitConverter.ToInt32(_bytes, pos);
             pos += 4;
 
@@ -112,9 +112,8 @@ namespace VRM.QuickMetaLoader
             _binOffset = pos;
         }
 
-        public Texture2D LoadThumbnail()
+        private KeyValuePair<string, byte[]> LoadThumbnailBin()
         {
-            if (_textureIndex < 0) return null;
             var textureString = GetIndexOfJsonArray("\"textures\":[", _textureIndex);
             var tex = JsonUtility.FromJson<GltfTextureModel>(textureString);
 
@@ -127,9 +126,17 @@ namespace VRM.QuickMetaLoader
             var buffer = new byte[bufferView.byteLength];
             Buffer.BlockCopy(_bytes,_binOffset + bufferView.byteOffset,buffer, 0, bufferView.byteLength);
 
+            return new KeyValuePair<string, byte[]>(img.name, buffer);
+        }
+        public Texture2D LoadThumbnail()
+        {
+            if (_textureIndex < 0) return null;
+            var kvp = LoadThumbnailBin();
+
             var thumbnail = new Texture2D(2,2);
-            thumbnail.LoadImage(buffer);
-            thumbnail.name = img.name;
+            thumbnail.LoadImage(kvp.Value);
+            thumbnail.name = kvp.Key;
+            _meta.Thumbnail = thumbnail;
             
             return thumbnail;
         }
@@ -147,5 +154,37 @@ namespace VRM.QuickMetaLoader
 
             return _jsonString.Substring(elementStartPos , elementEndPos + 1 - elementStartPos);
         }
+
+        #region AsyncMethods
+        public async Task<VRMMetaObject> ReadAsync(bool createThumbnail = false)
+        {
+            var meta = await Task.Run(() =>
+            {
+                return Read();
+            });
+            if (createThumbnail && !(_textureIndex < 0))
+            {
+                var kvp = await Task.Run(LoadThumbnailBin);
+                var thumbnail = new Texture2D(2,2);
+                thumbnail.LoadImage(kvp.Value);
+                thumbnail.name = kvp.Key;
+                _meta.Thumbnail = thumbnail;
+                meta.Thumbnail = thumbnail;
+            }
+            return meta;
+        }
+
+        public async Task<Texture2D> LoadThumbnailAsync()
+        {
+            if (_textureIndex < 0) return null;
+            var kvp = await Task.Run(LoadThumbnailBin);
+            var thumbnail = new Texture2D(2,2);
+            thumbnail.LoadImage(kvp.Value);
+            thumbnail.name = kvp.Key;
+            _meta.Thumbnail = thumbnail;
+            
+            return thumbnail;
+        }
+        #endregion
     }
 }
