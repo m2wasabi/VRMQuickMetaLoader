@@ -27,6 +27,16 @@ VRMMetaObject meta = metaLoader.Read();  // without thumbnail but fast
 Texture2D thumbnail = metaLoader.LoadThumbnail();
 ```
 
+### Async Read
+
+You can also use Async Method
+
+```csharp
+var bytes = await Task.Run(() => File.ReadAllBytes(file));
+var metaLoader = new MetaLoader(bytes);
+VRMMetaObject meta = await metaLoader.ReadAsync(true);
+```
+
 ## License
 
 MIT License
