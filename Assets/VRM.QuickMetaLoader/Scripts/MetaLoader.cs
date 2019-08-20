@@ -108,8 +108,9 @@ namespace VRM.QuickMetaLoader
             _binOffset = pos;
         }
 
-        public async Task<Texture2D> LoadAsyncThumbnail() 
+        public Texture2D LoadAsyncThumbnail()
         {
+            if (_textureIndex < 0) return null;
             var textureString = GetIndexOfJsonArray("\"textures\":[", _textureIndex);
             var tex = JsonUtility.FromJson<GltfTextureModel>(textureString);
 
@@ -127,7 +128,6 @@ namespace VRM.QuickMetaLoader
             thumbnail.name = img.name;
             
             return thumbnail;
-
         }
 
         private string GetIndexOfJsonArray(string elementKey, int index)

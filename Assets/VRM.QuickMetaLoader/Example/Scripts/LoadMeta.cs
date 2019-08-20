@@ -66,11 +66,11 @@ public class LoadMeta : MonoBehaviour
 
     }
 
-    private async void LoadIcon(MetaLoader metaLoader)
+    private void LoadIcon(MetaLoader metaLoader)
     {
         System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
         stopwatch.Start();
-        var t = await metaLoader.LoadAsyncThumbnail();
+        var t = metaLoader.LoadAsyncThumbnail();
         m_thumbnail.texture = t;
         stopwatch.Stop();
         Debug.Log("LoadThumbnail: " + (float)stopwatch.Elapsed.TotalSeconds + " sec");
