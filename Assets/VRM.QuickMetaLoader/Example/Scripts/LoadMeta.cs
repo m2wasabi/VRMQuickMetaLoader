@@ -40,20 +40,29 @@ public class LoadMeta : MonoBehaviour
     void Start()
     {
         System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
-        var bytes = File.ReadAllBytes("AliciaSolid_1.10.vrm");
+
         stopwatch.Start();
-        var meta = MetaLoader.Read(bytes);
+        var bytes = File.ReadAllBytes("AliciaSolid_1.10.vrm");
         stopwatch.Stop();
-        float elapsed = (float)stopwatch.Elapsed.TotalSeconds;
-        Debug.Log("QuickMetaLoader: " + elapsed);
+        Debug.Log("ReadAllBytes: " + (float)stopwatch.Elapsed.TotalSeconds);
+        
+        stopwatch.Restart();
+        var metaLoader = new MetaLoader(bytes);
+        var meta = metaLoader.Read();
+        stopwatch.Stop();
+        Debug.Log("QuickMetaLoader: " + (float)stopwatch.Elapsed.TotalSeconds);
         ViewMeta(meta);
         
-        var context = new VRMImporterContext();
         stopwatch.Restart();
+        var context = new VRMImporterContext();
         context.ParseGlb(bytes);
         stopwatch.Stop();
-        float elapsed2 = (float)stopwatch.Elapsed.TotalSeconds;
-        Debug.Log("VRM ParseGlb: " + elapsed2);
+        Debug.Log("VRM ParseGlb: " + (float)stopwatch.Elapsed.TotalSeconds);
+
+        stopwatch.Restart();
+        context.ReadMeta(true);
+        stopwatch.Stop();
+        Debug.Log("VRM ReadMeta: " + (float)stopwatch.Elapsed.TotalSeconds);
 
     }
 
