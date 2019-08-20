@@ -20,7 +20,30 @@ public class LoadManyMeta : MonoBehaviour
             stopwatch.Stop();
             Debug.Log("LoadTime: " + (float)stopwatch.Elapsed.TotalSeconds + " sec");
         }
+    }
 
+    private void Update()
+    {
+        if (Input.anyKeyDown)
+        {
+            foreach (Transform child in transform)
+            {
+                Destroy(child.gameObject);
+            }
+        }
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            var vrms = Directory.GetFiles (".", "*.vrm", System.IO.SearchOption.TopDirectoryOnly);
+
+            foreach (var vrm in vrms)
+            {
+                System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+                stopwatch.Start();
+                LoadMeta(vrm);
+                stopwatch.Stop();
+                Debug.Log("LoadTime: " + (float)stopwatch.Elapsed.TotalSeconds + " sec");
+            }
+        }
     }
 
     private void LoadMeta(string file)
