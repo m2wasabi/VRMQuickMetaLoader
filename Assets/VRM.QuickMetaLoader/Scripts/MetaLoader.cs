@@ -19,7 +19,7 @@ namespace VRM.QuickMetaLoader
         {
             this._bytes = bytes;
         }
-        public VRMMetaObject Read()
+        public VRMMetaObject Read(bool createThumbnail = false)
         {
             if (_bytes.Length == 0)
             {
@@ -30,6 +30,10 @@ namespace VRM.QuickMetaLoader
             if (pos < 0) return null;
 
             var vrmMetaObject = ByteReadMetaData(pos);
+            if (createThumbnail)
+            {
+                vrmMetaObject.Thumbnail = LoadThumbnail();
+            }
             
             return vrmMetaObject;
         }
@@ -108,7 +112,7 @@ namespace VRM.QuickMetaLoader
             _binOffset = pos;
         }
 
-        public Texture2D LoadAsyncThumbnail()
+        public Texture2D LoadThumbnail()
         {
             if (_textureIndex < 0) return null;
             var textureString = GetIndexOfJsonArray("\"textures\":[", _textureIndex);

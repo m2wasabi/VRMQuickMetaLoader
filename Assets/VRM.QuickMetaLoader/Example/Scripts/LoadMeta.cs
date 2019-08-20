@@ -70,7 +70,7 @@ public class LoadMeta : MonoBehaviour
     {
         System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
         stopwatch.Start();
-        var t = metaLoader.LoadAsyncThumbnail();
+        var t = metaLoader.LoadThumbnail();
         m_thumbnail.texture = t;
         stopwatch.Stop();
         Debug.Log("LoadThumbnail: " + (float)stopwatch.Elapsed.TotalSeconds + " sec");
