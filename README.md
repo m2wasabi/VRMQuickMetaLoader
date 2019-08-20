@@ -27,6 +27,14 @@ VRMMetaObject meta = metaLoader.Read();  // without thumbnail but fast
 Texture2D thumbnail = metaLoader.LoadThumbnail();
 ```
 
+## License
+
+MIT License
+
+## Download
+
+Go [GitHub Release page](https://github.com/m2wasabi/VRMQuickMetaLoader/releases)
+  and get .unitypackage
 
 ## Dependencies
 
