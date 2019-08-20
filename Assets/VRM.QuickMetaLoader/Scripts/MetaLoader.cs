@@ -1,8 +1,7 @@
 using System;
-using System.IO;
 using System.Linq;
 using System.Text;
-using System.Xml;
+using System.Threading.Tasks;
 using UnityEngine;
 using VRM.QuickMetaLoader.Model;
 
@@ -13,6 +12,9 @@ namespace VRM.QuickMetaLoader
         private readonly byte[] _bytes;
         private VRMMetaObject _meta;
         private string _jsonString;
+        private int _binOffset;
+        private int _textureIndex;
+
         public MetaLoader(byte[] bytes)
         {
             this._bytes = bytes;
@@ -27,7 +29,9 @@ namespace VRM.QuickMetaLoader
             var pos = JumpToJsonAddress();
             if (pos < 0) return null;
 
-            return ByteReadMetaData(pos);
+            var vrmMetaObject = ByteReadMetaData(pos);
+            
+            return vrmMetaObject;
         }
 
         private int JumpToJsonAddress()
@@ -47,9 +51,10 @@ namespace VRM.QuickMetaLoader
             }
             pos += 4;
 
-            //var totalLength = BitConverter.ToUInt32(bytes, pos);
             pos += 4;
-            return pos;
+            var jsonPos = pos;
+            
+            return jsonPos;
         }
 
         private  VRMMetaObject ByteReadMetaData(int pos)
@@ -68,9 +73,8 @@ namespace VRM.QuickMetaLoader
             }
             pos += 4;
 
-//            var fp = File.OpenWrite("vrmJson.json");
-//            fp.Write(bytes,pos,chunkDataSize);
             _jsonString = Encoding.UTF8.GetString(_bytes, pos, chunkDataSize);
+            GetBinChunk(pos + chunkDataSize);
 
             var VRMPos = _jsonString.IndexOf("\"VRM\":{", StringComparison.Ordinal);
             var exVerPos = _jsonString.IndexOf("\"exporterVersion\":\"", VRMPos + 6 ,StringComparison.Ordinal);
@@ -80,11 +84,64 @@ namespace VRM.QuickMetaLoader
             var metaPos = _jsonString.IndexOf("\"meta\":", VRMPos + 6 ,StringComparison.Ordinal);
             var metaEndPos = _jsonString.IndexOf('}', metaPos + 7 );
             var metaString = _jsonString.Substring(metaPos + 7 , metaEndPos - 6 - metaPos);
-            Debug.Log(metaString);
+//            Debug.Log(metaString);
             var QMeta = JsonUtility.FromJson<QuickMetaObject>(metaString);
             QMeta.PushMeta(ref _meta);
+            _textureIndex = QMeta.texture;
 
             return _meta;
+        }
+
+        private void GetBinChunk(int offset)
+        {
+            var pos = offset;
+            var chunkDataSize = BitConverter.ToInt32(_bytes, pos);
+            pos += 4;
+
+            var chunkTypeBytes = _bytes.Skip(pos).Take(4).Where(x => x != 0).ToArray();
+            var chunkTypeStr = Encoding.ASCII.GetString(chunkTypeBytes);
+            if (chunkTypeStr != "BIN")
+            {
+                throw new FormatException("unknown chunk type: " + chunkTypeStr);
+            }
+            pos += 4;
+            _binOffset = pos;
+        }
+
+        public async Task<Texture2D> LoadAsyncThumbnail() 
+        {
+            var textureString = GetIndexOfJsonArray("\"textures\":[", _textureIndex);
+            var tex = JsonUtility.FromJson<GltfTextureModel>(textureString);
+
+            var imageString = GetIndexOfJsonArray("\"images\":[", tex.source);
+            var img = JsonUtility.FromJson<GltfImageModel>(imageString);
+
+            var bufferViewString = GetIndexOfJsonArray("\"bufferViews\":[", img.bufferView);
+            var bufferView = JsonUtility.FromJson<GltfBufferViewModel>(bufferViewString);
+
+            var buffer = new byte[bufferView.byteLength];
+            Buffer.BlockCopy(_bytes,_binOffset + bufferView.byteOffset,buffer, 0, bufferView.byteLength);
+
+            var thumbnail = new Texture2D(2,2);
+            thumbnail.LoadImage(buffer);
+            thumbnail.name = img.name;
+            
+            return thumbnail;
+
+        }
+
+        private string GetIndexOfJsonArray(string elementKey, int index)
+        {
+            var pos = _jsonString.IndexOf(elementKey, StringComparison.Ordinal) + elementKey.Length;
+            var elementStartPos = 0;
+            for (int i = 0; i <= index; i++)
+            {
+                elementStartPos = _jsonString.IndexOf('{',pos);
+                pos = elementStartPos + 1;
+            }
+            var elementEndPos = _jsonString.IndexOf('}', elementStartPos );
+
+            return _jsonString.Substring(elementStartPos , elementEndPos + 1 - elementStartPos);
         }
     }
 }

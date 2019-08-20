@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 using VRM;
@@ -44,28 +42,39 @@ public class LoadMeta : MonoBehaviour
         stopwatch.Start();
         var bytes = File.ReadAllBytes("AliciaSolid_1.10.vrm");
         stopwatch.Stop();
-        Debug.Log("ReadAllBytes: " + (float)stopwatch.Elapsed.TotalSeconds);
+        Debug.Log("ReadAllBytes: " + (float)stopwatch.Elapsed.TotalSeconds + " sec");
         
         stopwatch.Restart();
         var metaLoader = new MetaLoader(bytes);
         var meta = metaLoader.Read();
         stopwatch.Stop();
-        Debug.Log("QuickMetaLoader: " + (float)stopwatch.Elapsed.TotalSeconds);
+        Debug.Log("QuickMetaLoader: " + (float)stopwatch.Elapsed.TotalSeconds + " sec");
+
         ViewMeta(meta);
-        
+        LoadIcon(metaLoader);
+
         stopwatch.Restart();
         var context = new VRMImporterContext();
         context.ParseGlb(bytes);
         stopwatch.Stop();
-        Debug.Log("VRM ParseGlb: " + (float)stopwatch.Elapsed.TotalSeconds);
+        Debug.Log("VRM ParseGlb: " + (float)stopwatch.Elapsed.TotalSeconds + " sec");
 
         stopwatch.Restart();
         context.ReadMeta(true);
         stopwatch.Stop();
-        Debug.Log("VRM ReadMeta: " + (float)stopwatch.Elapsed.TotalSeconds);
+        Debug.Log("VRM ReadMeta: " + (float)stopwatch.Elapsed.TotalSeconds + " sec");
 
     }
 
+    private async void LoadIcon(MetaLoader metaLoader)
+    {
+        System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+        stopwatch.Start();
+        var t = await metaLoader.LoadAsyncThumbnail();
+        m_thumbnail.texture = t;
+        stopwatch.Stop();
+        Debug.Log("LoadThumbnail: " + (float)stopwatch.Elapsed.TotalSeconds + " sec");
+    }
     private void ViewMeta(VRMMetaObject meta)
     {
 
