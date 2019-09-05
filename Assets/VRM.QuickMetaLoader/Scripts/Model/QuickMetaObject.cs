@@ -29,19 +29,20 @@ namespace VRM.QuickMetaLoader.Model
 
         public int texture;
 
-        public void PushMeta(ref VRMMetaObject meta){
+        public void PushMeta(ref VRMMetaObject meta)
+        {
             meta.Version = version; // model version
             meta.Author = author;
             meta.ContactInformation = contactInformation;
             meta.Reference = reference;
             meta.Title = title;
-            meta.AllowedUser = EnumUtil.TryParseOrDefault<AllowedUser>(allowedUserName);
-            meta.ViolentUssage = EnumUtil.TryParseOrDefault<UssageLicense>(violentUssageName);
-            meta.SexualUssage = EnumUtil.TryParseOrDefault<UssageLicense>(sexualUssageName);
-            meta.CommercialUssage = EnumUtil.TryParseOrDefault<UssageLicense>(commercialUssageName);
+            meta.AllowedUser = allowedUserName.ParseAllowedUser();
+            meta.ViolentUssage = violentUssageName.ParseUssageLicense();
+            meta.SexualUssage = sexualUssageName.ParseUssageLicense();
+            meta.CommercialUssage = commercialUssageName.ParseUssageLicense();
             meta.OtherPermissionUrl = otherPermissionUrl;
 
-            meta.LicenseType = EnumUtil.TryParseOrDefault<LicenseType>(licenseName);
+            meta.LicenseType = licenseName.ParseLicenseType();
             meta.OtherLicenseUrl = otherLicenseUrl;
         }
     }
