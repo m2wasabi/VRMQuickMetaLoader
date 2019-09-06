@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using VRM.QuickMetaLoader.Model;
@@ -26,31 +27,27 @@ namespace VRM.QuickMetaLoader
 
         private bool Initialize()
         {
-            var findIndexOfVrm =
-                ValidateMagicWords(ref bytes, ref length) &&
+            return ValidateMagicWords(ref bytes, ref length) &&
                 ValidateVersion(ref bytes, ref length) &&
                 ReadTotalLength(ref bytes, ref length, out _) &&
                 ReadChunkLength(ref bytes, ref length, out var chunkLength) &&
                 ValidateChunkTypeWhetherToBeJson(ref bytes, ref length) &&
-                ReadBinaryData(bytes + chunkLength, length - chunkLength, out binaryStart, out binaryRestLength, out binaryChunkSize) &&
-                FindIndexOf___VRM___(ref bytes, ref length);
-            if (findIndexOfVrm)
-            {
-                length -= 7L;
-                bytes += 7;
-            }
-            return findIndexOfVrm;
+                ReadBinaryData(bytes + chunkLength, length - chunkLength, out binaryStart, out binaryRestLength, out binaryChunkSize);
         }
 
         public bool Read(VRMMetaObject metaObject, bool createThumbnail = false)
         {
             if (!Initialize()) throw new ArgumentException();
+
             var bytes0 = bytes;
             var length0 = length;
+            if (!FindIndexOf___VRM___(ref bytes0, ref length0)) throw new InvalidDataException();
+            bytes0 += 7;
+            length0 -= 7;
+            var bytes1 = bytes0;
+            var length1 = length0;
             if (!ReadExporterVersion(ref bytes0, ref length0, out var strSBytes0, out var strLength0))
                 return false;
-            var bytes1 = bytes;
-            var length1 = length;
             if (!ReadMeta(ref bytes1, ref length1, out var strSBytes1, out var strLength1))
                 return false;
             metaObject.ExporterVersion = new string(strSBytes0, 0, strLength0);

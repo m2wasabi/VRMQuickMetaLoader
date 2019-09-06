@@ -40,18 +40,33 @@ public class LoadMeta : MonoBehaviour
         System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
 
         stopwatch.Start();
-        var bytes = File.ReadAllBytes("AliciaSolid_1.10.vrm");
+        const string path = "AliciaSolid_1.10.vrm";
+        var bytes = File.ReadAllBytes(path);
         stopwatch.Stop();
         Debug.Log("ReadAllBytes: " + (float)stopwatch.Elapsed.TotalSeconds + " sec");
-        
-        stopwatch.Restart();
-        var metaLoader = new MetaLoader(bytes);
-        var meta = metaLoader.Read();
-        stopwatch.Stop();
-        Debug.Log("QuickMetaLoader: " + (float)stopwatch.Elapsed.TotalSeconds + " sec");
 
-        ViewMeta(meta);
-        LoadIcon(metaLoader);
+        stopwatch.Restart();
+        using (var metaLoader = new MetaLoader(bytes))
+        {
+            var meta = metaLoader.Read();
+            stopwatch.Stop();
+            Debug.Log("QuickMetaLoader: " + (float)stopwatch.Elapsed.TotalSeconds + " sec");
+
+            ViewMeta(meta);
+            LoadIcon(metaLoader);
+        }
+
+        stopwatch.Restart();
+        using (var jobMetaLoader = new JobMetaLoader(path))
+        {
+            var meta = jobMetaLoader.Read();
+            stopwatch.Stop();
+            Debug.Log("JobMetaLoader: " + (float)stopwatch.Elapsed.TotalSeconds + " sec");
+
+            ViewMeta(meta);
+            LoadIconJob(jobMetaLoader, meta);
+        }
+        stopwatch.Stop();
 
         stopwatch.Restart();
         var context = new VRMImporterContext();
@@ -64,6 +79,17 @@ public class LoadMeta : MonoBehaviour
         stopwatch.Stop();
         Debug.Log("VRM ReadMeta: " + (float)stopwatch.Elapsed.TotalSeconds + " sec");
 
+    }
+
+    private void LoadIconJob(JobMetaLoader jobMetaLoader, VRMMetaObject meta)
+    {
+        System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+        stopwatch.Start();
+        var t = jobMetaLoader.LoadThumbnail();
+        meta.Thumbnail = t;
+        m_thumbnail.texture = t;
+        stopwatch.Stop();
+        Debug.Log("JobLoadThumbnail: " + (float)stopwatch.Elapsed.TotalSeconds + " sec");
     }
 
     private void LoadIcon(MetaLoader metaLoader)

@@ -34,7 +34,7 @@ namespace VRM.QuickMetaLoader
 
         public VRMMetaObject Read()
         {
-            var metaObject = new VRMMetaObject();
+            var metaObject = ScriptableObject.CreateInstance<VRMMetaObject>();
 
             ptr->InterpretMetaAndLoadBinaryJobHandle.Complete();
             if (ptr->Status != 3) throw new Exception();

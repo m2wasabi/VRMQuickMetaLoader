@@ -16,7 +16,7 @@ namespace VRM.QuickMetaLoader
 
         public VRMMetaObject Read()
         {
-            var meta = new VRMMetaObject();
+            var meta = ScriptableObject.CreateInstance<VRMMetaObject>();
             metaLoader.Read(meta, false);
             return meta;
         }
