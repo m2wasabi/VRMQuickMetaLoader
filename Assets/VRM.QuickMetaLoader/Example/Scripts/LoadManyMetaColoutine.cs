@@ -1,7 +1,7 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using VRM;
 using VRM.QuickMetaLoader;
 
 public class LoadManyMetaColoutine : MonoBehaviour
@@ -10,7 +10,7 @@ public class LoadManyMetaColoutine : MonoBehaviour
 
     void Start()
     {
-        var vrms = Directory.GetFiles (".", "*.vrm", System.IO.SearchOption.TopDirectoryOnly);
+        var vrms = Directory.GetFiles(".", "*.vrm", System.IO.SearchOption.TopDirectoryOnly);
         StartCoroutine(LoadVrmColoutine(vrms));
 
     }
@@ -26,7 +26,7 @@ public class LoadManyMetaColoutine : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            var vrms = Directory.GetFiles (".", "*.vrm", System.IO.SearchOption.TopDirectoryOnly);
+            var vrms = Directory.GetFiles(".", "*.vrm", System.IO.SearchOption.TopDirectoryOnly);
             StartCoroutine(LoadVrmColoutine(vrms));
         }
     }
@@ -36,8 +36,11 @@ public class LoadManyMetaColoutine : MonoBehaviour
         System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
         stopwatch.Start();
         var bytes = File.ReadAllBytes(file);
-        var metaLoader = new MetaLoader(bytes);
-        var meta = metaLoader.Read(true);
+        VRMMetaObject meta;
+        using (var metaLoader = new MetaLoader(bytes))
+        {
+            meta = metaLoader.Read(true);
+        }
         stopwatch.Stop();
         Debug.Log("LoadTime: " + (float)stopwatch.Elapsed.TotalSeconds + " sec");
 
