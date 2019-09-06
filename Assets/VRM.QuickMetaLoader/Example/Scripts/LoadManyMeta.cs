@@ -1,16 +1,14 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using UnityEngine;
 using VRM.QuickMetaLoader;
 
-public class LoadManyMeta : MonoBehaviour
+public sealed class LoadManyMeta : MonoBehaviour
 {
     [SerializeField] private RectTransform _cardPrefab;
 
     void Start()
     {
-        var vrms = Directory.GetFiles (".", "*.vrm", System.IO.SearchOption.TopDirectoryOnly);
+        var vrms = Directory.GetFiles(".", "*.vrm", System.IO.SearchOption.TopDirectoryOnly);
 
         foreach (var vrm in vrms)
         {
@@ -33,7 +31,7 @@ public class LoadManyMeta : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            var vrms = Directory.GetFiles (".", "*.vrm", System.IO.SearchOption.TopDirectoryOnly);
+            var vrms = Directory.GetFiles(".", "*.vrm", System.IO.SearchOption.TopDirectoryOnly);
 
             foreach (var vrm in vrms)
             {
@@ -49,12 +47,14 @@ public class LoadManyMeta : MonoBehaviour
     private void LoadMeta(string file)
     {
         var bytes = File.ReadAllBytes(file);
-        var metaLoader = new MetaLoader(bytes);
-        var meta = metaLoader.Read(true);
+        using (var metaLoader = new MetaLoader(bytes))
+        {
+            var meta = metaLoader.Read(true);
 
-        var go = Instantiate(_cardPrefab, transform);
-        var card = go.GetComponent<CharacterCard>();
-        card.SetMetaText(meta);
-        card.SetThumbnail(meta.Thumbnail);
+            var go = Instantiate(_cardPrefab, transform);
+            var card = go.GetComponent<CharacterCard>();
+            card.SetMetaText(meta);
+            card.SetThumbnail(meta.Thumbnail);
+        }
     }
 }

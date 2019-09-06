@@ -9,8 +9,11 @@ load quick VRM.Meta information
 
 ```csharp
 var bytes = File.ReadAllBytes(file);
-var metaLoader = new VRM.QuickMetaLoader.MetaLoader(bytes);
-VRMMetaObject meta = metaLoader.Read(true);
+VRMMetaObject meta;
+using(var metaLoader = new VRM.QuickMetaLoader.MetaLoader(bytes, false))
+{
+	meta = metaLoader.Read();
+}
 ```
 
 And, you got VRMMetaObject with thumbnail.
@@ -19,22 +22,29 @@ And, you got VRMMetaObject with thumbnail.
 
 ```csharp
 var bytes = File.ReadAllBytes(file);
-var metaLoader = new VRM.QuickMetaLoader.MetaLoader(bytes);
-VRMMetaObject meta = metaLoader.Read();  // without thumbnail but fast
+using(var metaLoader = new VRM.QuickMetaLoader.MetaLoader(bytes))
+{
+	VRMMetaObject meta = metaLoader.Read();
 
-// some process...
+	// some process...
 
-Texture2D thumbnail = metaLoader.LoadThumbnail();
+	Texture2D thumbnail = metaLoader.LoadThumbnail();
+}
 ```
 
-### Async Read
+### Job Read
 
-You can also use Async Method
+You can also use AsyncReadManager Read.
 
 ```csharp
-var bytes = await Task.Run(() => File.ReadAllBytes(file));
-var metaLoader = new MetaLoader(bytes);
-VRMMetaObject meta = await metaLoader.ReadAsync(true);
+using(var metaLoader = new JobMetaLoader(file, preloadThumbnail: true))
+{
+	VRMMetaObject meta = metaLoader.Read();
+
+	// some process...
+
+	meta.Thumbnail =  metaLoader.LoadThumbnail();
+}
 ```
 
 ## License
