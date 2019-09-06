@@ -23,7 +23,7 @@ namespace VRM.QuickMetaLoader
 
         public VRMMetaObject Read(bool createThumbnail)
         {
-            var meta = new VRMMetaObject();
+            var meta = ScriptableObject.CreateInstance<VRMMetaObject>();
             metaLoader.Read(meta, createThumbnail);
             return meta;
         }
