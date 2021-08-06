@@ -160,8 +160,8 @@ namespace VRM.QuickMetaLoader
                 {
                     throw new Exception();
                 }
-                bytes0 += 7;
-                length0 -= 7;
+                bytes0 ++;
+                length0 --;
 
                 var bytes1 = bytes0;
                 var length1 = length0;
@@ -259,8 +259,8 @@ namespace VRM.QuickMetaLoader
             {
                 return false;
             }
-            bytes += 7;
-            length -= 7;
+            bytes ++;
+            length --;
             strSBytes = (sbyte*)bytes;
             var tmpLength = length;
             if (!FindIndexOf(ref bytes, ref length, 0x7d)) // }
@@ -301,8 +301,8 @@ namespace VRM.QuickMetaLoader
             {
                 return false;
             }
-            bytes += 19;
-            length -= 19;
+            bytes ++;
+            length --;
             strSBytes = (sbyte*)bytes;
             var tmpLength = length;
             if (!FindIndexOf(ref bytes, ref length, 0x22))
@@ -317,12 +317,23 @@ namespace VRM.QuickMetaLoader
 
         private static bool FindIndexOf(ref byte* bytes, ref uint length, ulong first8, uint second4, ushort third2, byte last)
         {
-            const long count = 15L;
+            const uint count = 15U;
             for (; length >= count; bytes++, length--)
             {
-                if (*(ulong*)bytes == first8 && *(uint*)(bytes + 8) == second4 && *(ushort*)(bytes + 12) == third2 && bytes[count - 1L] == last)
+                if (*(ulong*)bytes == first8 && *(uint*)(bytes + 8) == second4 && *(ushort*)(bytes + 12) == third2)
                 {
-                    return true;
+                    bytes += count - 1;
+                    length -= count - 1;
+                    while(length >= count && (*bytes == 0x20 || *bytes == 0x0d || *bytes == 0x0a ||  *bytes == 0x09))
+                    {
+                        bytes++;
+                        length--;
+                    }
+
+                    if (*bytes == last)
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
@@ -330,12 +341,23 @@ namespace VRM.QuickMetaLoader
 
         private static bool FindIndexOf(ref byte* bytes, ref uint length, ulong first8, ulong second8, ushort third2, byte last)
         {
-            const long count = 19L;
+            const uint count = 19U;
             for (; length >= count; bytes++, length--)
             {
-                if (*(ulong*)bytes == first8 && *(ulong*)(bytes + 8) == second8 && *(ushort*)(bytes + 16) == third2 && bytes[count - 1L] == last)
+                if (*(ulong*)bytes == first8 && *(ulong*)(bytes + 8) == second8 && *(ushort*)(bytes + 16) == third2)
                 {
-                    return true;
+                    bytes += count - 1;
+                    length -= count - 1;
+                    while(length >= count && (*bytes == 0x20 || *bytes == 0x0d || *bytes == 0x0a ||  *bytes == 0x09))
+                    {
+                        bytes++;
+                        length--;
+                    }
+
+                    if (*bytes == last)
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
@@ -343,36 +365,69 @@ namespace VRM.QuickMetaLoader
 
         private static bool FindIndexOf(ref byte* bytes, ref uint length, uint first4, ushort second2, byte last)
         {
-            const long count = 7L;
+            const uint count = 7U;
             for (; length >= count; bytes++, length--)
             {
-                if (*(uint*)bytes == first4 && *(ushort*)(bytes + 4) == second2 && bytes[count - 1L] == last)
+                if (*(uint*)bytes == first4 && *(ushort*)(bytes + 4) == second2)
                 {
-                    return true;
+                    bytes += count - 1;
+                    length -= count - 1;
+                    while(length >= count && (*bytes == 0x20 || *bytes == 0x0d || *bytes == 0x0a ||  *bytes == 0x09))
+                    {
+                        bytes++;
+                        length--;
+                    }
+
+                    if (*bytes == last)
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
         }
 
-        private static bool FindIndexOf(ref byte* bytes, ref uint length, ulong first8, uint last)
+        private static bool FindIndexOf(ref byte* bytes, ref uint length, ulong first8, ushort second2, byte third1, byte last)
         {
-            for (; length >= 12L; bytes++, length--)
+            for (; length >= 12U; bytes++, length--)
             {
-                if (*(ulong*)bytes == first8 && *(uint*)(bytes + 8) == last)
+                if (*(ulong*)bytes == first8 && *(ushort*)(bytes + 8) == second2 && *(bytes + 10) == third1)
                 {
-                    return true;
+                    bytes += 11U;
+                    length -= 11U;
+                    while(length >= 12U && (*bytes == 0x20 || *bytes == 0x0d || *bytes == 0x0a ||  *bytes == 0x09))
+                    {
+                        bytes++;
+                        length--;
+                    }
+
+                    if (*bytes == last)
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
         }
 
-        private static bool FindIndexOf(ref byte* bytes, ref uint length, ulong first8, ushort last)
+        private static bool FindIndexOf(ref byte* bytes, ref uint length, ulong first8, byte second1, byte last)
         {
-            for (; length >= 10L; bytes++, length--)
+            for (; length >= 10U; bytes++, length--)
             {
-                if (*(ulong*)bytes == first8 && *(ushort*)(bytes + 8) == last)
+                if (*(ulong*)bytes == first8 && *(bytes + 8) == second1)
                 {
-                    return true;
+                    bytes += 9U;
+                    length -= 9U;
+                    while(length >= 10U && (*bytes == 0x20 || *bytes == 0x0d || *bytes == 0x0a ||  *bytes == 0x09))
+                    {
+                        bytes++;
+                        length--;
+                    }
+
+                    if (*bytes == last)
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
@@ -380,7 +435,7 @@ namespace VRM.QuickMetaLoader
 
         private static bool FindIndexOf(ref byte* bytes, ref uint length, byte value)
         {
-            for (; length >= 1L; bytes++, length--)
+            for (; length >= 1U; bytes++, length--)
             {
                 if (*bytes == value)
                 {
@@ -419,7 +474,7 @@ namespace VRM.QuickMetaLoader
         {
             start = default;
             byteLen = default;
-            if (!FindIndexOf(ref bytes, ref length, 0x5672656666756222UL, (uint)0x73776569U, (ushort)0x3a22, (byte)0x5b)) // "bufferViews":[
+            if (!FindIndexOf(ref bytes, ref length, 0x5672656666756222UL, 0x73776569U, 0x3a22, 0x5b)) // "bufferViews":[
             {
                 Debug.LogWarning(@"'""bufferViews"":[' not found");
                 return false;
@@ -430,7 +485,7 @@ namespace VRM.QuickMetaLoader
         {
             start = default;
             byteLen = default;
-            if (!FindIndexOf(ref bytes, ref length, 0x22736567616d6922UL, (ushort)0x5b3a)) // "images":[
+            if (!FindIndexOf(ref bytes, ref length, 0x22736567616d6922UL, 0x3a, 0x5b)) // "images":[
             {
                 Debug.LogWarning(@"'""images"":[' not found");
                 return false;
@@ -441,7 +496,7 @@ namespace VRM.QuickMetaLoader
         {
             start = default;
             byteLen = default;
-            if (!FindIndexOf(ref bytes, ref length, 0x6572757478657422UL, 0x5b3a2273U)) // "textures":[
+            if (!FindIndexOf(ref bytes, ref length, 0x6572757478657422UL, 0x2273, 0x3a, 0x5b)) // "textures":[
             {
                 Debug.LogWarning(@"'""textures"":[' not found");
                 return false;

@@ -42,8 +42,8 @@ namespace VRM.QuickMetaLoader
             var bytes0 = bytes;
             var length0 = length;
             if (!FindIndexOf___VRM___(ref bytes0, ref length0)) throw new InvalidDataException();
-            bytes0 += 7;
-            length0 -= 7;
+            bytes0 ++;
+            length0 --;
             var bytes1 = bytes0;
             var length1 = length0;
             if (!ReadExporterVersion(ref bytes0, ref length0, out var strSBytes0, out var strLength0))
@@ -112,8 +112,8 @@ namespace VRM.QuickMetaLoader
             {
                 return false;
             }
-            bytes += 7;
-            length -= 7L;
+            bytes ++;
+            length --;
             strSBytes = (sbyte*)bytes;
             var tmpLength = length;
             if (!FindIndexOf(ref bytes, ref length, 0x7d)) // }
@@ -152,7 +152,7 @@ namespace VRM.QuickMetaLoader
         {
             start = default;
             byteLen = default;
-            if (!FindIndexOf(ref bytes, ref length, 0x22736567616d6922UL, (ushort)0x5b3a)) // "images":[
+            if (!FindIndexOf(ref bytes, ref length, 0x22736567616d6922UL, 0x3a, 0x5b)) // "images":[
             {
                 Debug.LogWarning(@"'""images"":[' not found");
                 return false;
@@ -163,7 +163,7 @@ namespace VRM.QuickMetaLoader
         {
             start = default;
             byteLen = default;
-            if (!FindIndexOf(ref bytes, ref length, 0x6572757478657422UL, 0x5b3a2273U)) // "textures":[
+            if (!FindIndexOf(ref bytes, ref length, 0x6572757478657422UL, (ushort)0x2273, 0x3a, 0x5b)) // "textures":[
             {
                 Debug.LogWarning(@"'""textures"":[' not found");
                 return false;
@@ -219,8 +219,8 @@ namespace VRM.QuickMetaLoader
             {
                 return false;
             }
-            bytes += 19;
-            length -= 19L;
+            bytes ++;
+            length --;
             strSBytes = (sbyte*)bytes;
             var tmpLength = length;
             if (!FindIndexOf(ref bytes, ref length, 0x22))
@@ -238,9 +238,20 @@ namespace VRM.QuickMetaLoader
             const long count = 15L;
             for (; length >= count; bytes++, length--)
             {
-                if (*(ulong*)bytes == first8 && *(uint*)(bytes + 8) == second4 && *(ushort*)(bytes + 12) == third2 && bytes[count - 1L] == last)
+                if (*(ulong*)bytes == first8 && *(uint*)(bytes + 8) == second4 && *(ushort*)(bytes + 12) == third2)
                 {
-                    return true;
+                    bytes += count - 1;
+                    length -= count - 1;
+                    while(length >= count && (*bytes == 0x20 || *bytes == 0x0d || *bytes == 0x0a ||  *bytes == 0x09))
+                    {
+                        bytes++;
+                        length--;
+                    }
+
+                    if (*bytes == last)
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
@@ -251,9 +262,20 @@ namespace VRM.QuickMetaLoader
             const long count = 19L;
             for (; length >= count; bytes++, length--)
             {
-                if (*(ulong*)bytes == first8 && *(ulong*)(bytes + 8) == second8 && *(ushort*)(bytes + 16) == third2 && bytes[count - 1L] == last)
+                if (*(ulong*)bytes == first8 && *(ulong*)(bytes + 8) == second8 && *(ushort*)(bytes + 16) == third2)
                 {
-                    return true;
+                    bytes += count - 1;
+                    length -= count - 1;
+                    while(length >= count && (*bytes == 0x20 || *bytes == 0x0d || *bytes == 0x0a ||  *bytes == 0x09))
+                    {
+                        bytes++;
+                        length--;
+                    }
+
+                    if (*bytes == last)
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
@@ -264,33 +286,66 @@ namespace VRM.QuickMetaLoader
             const long count = 7L;
             for (; length >= count; bytes++, length--)
             {
-                if (*(uint*)bytes == first4 && *(ushort*)(bytes + 4) == second2 && bytes[count - 1L] == last)
+                if (*(uint*)bytes == first4 && *(ushort*)(bytes + 4) == second2)
                 {
-                    return true;
+                    bytes += count - 1;
+                    length -= count - 1;
+                    while(length >= count && (*bytes == 0x20 || *bytes == 0x0d || *bytes == 0x0a ||  *bytes == 0x09))
+                    {
+                        bytes++;
+                        length--;
+                    }
+
+                    if (*bytes == last)
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
         }
 
-        private static bool FindIndexOf(ref byte* bytes, ref long length, ulong first8, uint last)
+        private static bool FindIndexOf(ref byte* bytes, ref long length, ulong first8, ushort second2, byte third1, byte last)
         {
             for (; length >= 12L; bytes++, length--)
             {
-                if (*(ulong*)bytes == first8 && *(uint*)(bytes + 8) == last)
+                if (*(ulong*)bytes == first8 && *(ushort*)(bytes + 8) == second2 && *(bytes + 10) == third1)
                 {
-                    return true;
+                    bytes += 11L;
+                    length -= 11L;
+                    while(length >= 12L && (*bytes == 0x20 || *bytes == 0x0d || *bytes == 0x0a ||  *bytes == 0x09))
+                    {
+                        bytes++;
+                        length--;
+                    }
+
+                    if (*bytes == last)
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
         }
 
-        private static bool FindIndexOf(ref byte* bytes, ref long length, ulong first8, ushort last)
+        private static bool FindIndexOf(ref byte* bytes, ref long length, ulong first8, byte second1, byte last)
         {
             for (; length >= 10L; bytes++, length--)
             {
-                if (*(ulong*)bytes == first8 && *(ushort*)(bytes + 8) == last)
+                if (*(ulong*)bytes == first8 && *(bytes + 8) == second1)
                 {
-                    return true;
+                    bytes += 9L;
+                    length -= 9L;
+                    while(length >= 10L && (*bytes == 0x20 || *bytes == 0x0d || *bytes == 0x0a ||  *bytes == 0x09))
+                    {
+                        bytes++;
+                        length--;
+                    }
+
+                    if (*bytes == last)
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
